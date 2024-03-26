@@ -4,10 +4,10 @@ on:
   workflow_call:
 
   push:
-    branches: [main]
+    branches: [ main ]
 
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 concurrency:
   group: lint-${{ github.ref }}
@@ -365,6 +365,10 @@ jobs:
         run: |
           echo "❌ Documentation files has been updated."
           echo "  Changed files : ${{ steps.verify-changed-docs-files.outputs.changed_files }}"
+          git diff --name-only | grep 'docs/' | while read file; do
+            echo "Changes in $file:"
+            git diff HEAD~1 $file
+          done
           echo "Please generate docs using \`cargo make docs-generate\` then commit this new documentation."
           exit 1
 
