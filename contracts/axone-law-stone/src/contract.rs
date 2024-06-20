@@ -1,7 +1,3 @@
-use axone_logic_bindings::LogicCustomQuery;
-use axone_objectarium::msg::{
-    ExecuteMsg as StorageMsg, ObjectPinsResponse, QueryMsg as StorageQuery,
-};
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
@@ -11,10 +7,15 @@ use cosmwasm_std::{
 use cw2::set_contract_version;
 use cw_utils::nonpayable;
 
+use axone_logic_bindings::LogicCustomQuery;
+use axone_objectarium::msg::{
+    ExecuteMsg as StorageMsg, ObjectPinsResponse, QueryMsg as StorageQuery,
+};
+use axone_objectarium_client::ObjectRef;
+
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 use crate::state::INSTANTIATE_CONTEXT;
-use axone_objectarium_client::ObjectRef;
 
 // version info for migration info
 const CONTRACT_NAME: &str = concat!("crates.io:", env!("CARGO_PKG_NAME"));
@@ -66,9 +67,11 @@ pub fn execute(
 }
 
 pub mod execute {
-    use super::*;
-    use crate::state::{DEPENDENCIES, PROGRAM};
     use cosmwasm_std::{ensure_eq, Order};
+
+    use crate::state::{DEPENDENCIES, PROGRAM};
+
+    use super::*;
 
     pub fn break_stone(
         deps: DepsMut<'_>,
@@ -130,12 +133,14 @@ pub fn query(deps: Deps<'_>, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 
 pub mod query {
-    use super::*;
+    use axone_logic_bindings::{Answer, AskResponse};
+
     use crate::helper;
     use crate::helper::object_ref_to_uri;
     use crate::msg::ProgramResponse;
     use crate::state::PROGRAM;
-    use axone_logic_bindings::{Answer, AskResponse};
+
+    use super::*;
 
     const ERR_STONE_BROKEN: &str = "system_error(broken_law_stone)";
 
@@ -192,11 +197,13 @@ pub fn reply(deps: DepsMut<'_>, env: Env, msg: Reply) -> Result<Response, Contra
 }
 
 pub mod reply {
-    use super::*;
+    use cw_utils::ParseReplyError;
+
     use crate::helper;
     use crate::helper::{ask_response_to_objects, get_reply_event_attribute, object_ref_to_uri};
     use crate::state::{LawStone, DEPENDENCIES, PROGRAM};
-    use cw_utils::ParseReplyError;
+
+    use super::*;
 
     pub fn store_program_reply(
         deps: DepsMut<'_>,
@@ -268,15 +275,9 @@ pub mod reply {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::msg::ProgramResponse;
-    use crate::state::{LawStone, DEPENDENCIES, PROGRAM};
-    use axone_logic_bindings::testing::mock::mock_dependencies_with_logic_handler;
-    use axone_logic_bindings::{
-        Answer, AskResponse, LogicCustomQuery, Result as LogicResult, Substitution,
-    };
-    use axone_objectarium::msg::PageInfo;
-    use axone_wasm::uri::CosmwasmUri;
+    use std::collections::VecDeque;
+    use std::marker::PhantomData;
+
     use cosmwasm_std::testing::{
         mock_dependencies, mock_env, mock_info, MockApi, MockQuerier,
         MockQuerierCustomHandlerResult, MockStorage,
@@ -288,8 +289,18 @@ mod tests {
     use cw_utils::ParseReplyError::SubMsgFailure;
     use cw_utils::PaymentError;
     use cw_utils::PaymentError::NonPayable;
-    use std::collections::VecDeque;
-    use std::marker::PhantomData;
+
+    use axone_logic_bindings::testing::mock::mock_dependencies_with_custom_handler;
+    use axone_logic_bindings::{
+        Answer, AskResponse, LogicCustomQuery, Result as LogicResult, Substitution,
+    };
+    use axone_objectarium::msg::PageInfo;
+    use axone_wasm::uri::CosmwasmUri;
+
+    use crate::msg::ProgramResponse;
+    use crate::state::{LawStone, DEPENDENCIES, PROGRAM};
+
+    use super::*;
 
     fn custom_logic_handler_with_dependencies(
         dependencies: Vec<String>,
@@ -337,8 +348,10 @@ mod tests {
 
     #[test]
     fn proper_initialization() {
-        let mut deps =
-            mock_dependencies_with_logic_handler(|_| SystemResult::Err(SystemError::Unknown {}));
+        let mut deps = mock_dependencies_with_custom_handler(|_: &LogicCustomQuery| {
+            SystemResult::Err(SystemError::Unknown {})
+        });
+
         let program = to_json_binary("foo(_) :- true.").unwrap();
 
         let msg = InstantiateMsg {
@@ -383,8 +396,9 @@ mod tests {
 
     #[test]
     fn funds_initialization() {
-        let mut deps =
-            mock_dependencies_with_logic_handler(|_| SystemResult::Err(SystemError::Unknown {}));
+        let mut deps = mock_dependencies_with_custom_handler(|_: &LogicCustomQuery| {
+            SystemResult::Err(SystemError::Unknown {})
+        });
         let env = mock_env();
         let info = mock_info("sender", &coins(10, "uaxone"));
 
@@ -401,8 +415,9 @@ mod tests {
 
     #[test]
     fn program() {
-        let mut deps =
-            mock_dependencies_with_logic_handler(|_| SystemResult::Err(SystemError::Unknown {}));
+        let mut deps = mock_dependencies_with_custom_handler(|_: &LogicCustomQuery| {
+            SystemResult::Err(SystemError::Unknown {})
+        });
 
         let object_id =
             "4cbe36399aabfcc7158ee7a66cbfffa525bb0ceab33d1ff2cff08759fe0a9b05".to_string();
@@ -435,8 +450,9 @@ mod tests {
         const OBJECT_ID: &str = "4cbe36399aabfcc7158ee7a66cbfffa525bb0ceab33d1ff2cff08759fe0a9b05";
         const A_PROGRAM: &str = "foo(_) :- true.";
 
-        let mut deps =
-            mock_dependencies_with_logic_handler(|_| SystemResult::Err(SystemError::Unknown {}));
+        let mut deps = mock_dependencies_with_custom_handler(|_: &LogicCustomQuery| {
+            SystemResult::Err(SystemError::Unknown {})
+        });
         deps.querier.update_wasm(move |query| match query {
             WasmQuery::Smart { contract_addr, msg } if contract_addr == CONTRACT_ID => {
                 let data = to_json_binary(&A_PROGRAM).unwrap();
@@ -583,7 +599,7 @@ mod tests {
             ));
             let env = mock_env();
             let env_4_closure = env.clone();
-            let mut deps = mock_dependencies_with_logic_handler(move |request| {
+            let mut deps = mock_dependencies_with_custom_handler(move |request| {
                 let (query, o, s) = p.as_ref();
                 custom_logic_handler_with_query(
                     &env_4_closure,
@@ -681,7 +697,7 @@ mod tests {
                     .collect::<Vec<String>>(),
             );
             let program_object_id = case.clone().object_id;
-            let mut deps = mock_dependencies_with_logic_handler(move |request| {
+            let mut deps = mock_dependencies_with_custom_handler(move |request| {
                 custom_logic_handler_with_dependencies(
                     uris.to_vec(),
                     ObjectRef {
