@@ -4,8 +4,13 @@ use axone_logic_bindings::{AskResponse, TermValue};
 use axone_objectarium_client::ObjectRef;
 use axone_wasm::error::CosmwasmUriError;
 use axone_wasm::uri::CosmwasmUri;
-use cosmwasm_std::{Event, StdError, StdResult};
+use cosmwasm_std::{
+    from_json, to_json_vec, ContractResult, Event, QuerierWrapper, QueryRequest, StdError,
+    StdResult, SystemResult,
+};
 use itertools::Itertools;
+use serde::de::DeserializeOwned;
+use serde::Serialize;
 use std::any::type_name;
 
 pub fn object_ref_to_uri(object: ObjectRef) -> StdResult<CosmwasmUri> {
@@ -87,6 +92,24 @@ pub fn ask_response_to_objects(
                 .map_err(ContractError::ParseCosmwasmUri)
         })
         .collect()
+}
+
+pub fn query<U: DeserializeOwned, C: Serialize>(
+    q: &QuerierWrapper<'_>,
+    request: &QueryRequest<C>,
+) -> StdResult<U> {
+    let raw = to_json_vec(request).map_err(|serialize_err| {
+        StdError::generic_err(format!("Serializing QueryRequest: {serialize_err}"))
+    })?;
+    match q.raw_query(&raw) {
+        SystemResult::Err(system_err) => Err(StdError::generic_err(format!(
+            "Querier system error: {system_err}"
+        ))),
+        SystemResult::Ok(ContractResult::Err(contract_err)) => Err(StdError::generic_err(format!(
+            "Querier contract error: {contract_err}"
+        ))),
+        SystemResult::Ok(ContractResult::Ok(value)) => from_json(value),
+    }
 }
 
 #[cfg(test)]

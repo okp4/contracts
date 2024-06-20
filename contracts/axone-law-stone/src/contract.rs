@@ -24,7 +24,7 @@ const STORE_PROGRAM_REPLY_ID: u64 = 1;
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
-    deps: DepsMut<'_, LogicCustomQuery>,
+    deps: DepsMut<'_>,
     _env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
@@ -121,7 +121,7 @@ pub mod execute {
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps<'_, LogicCustomQuery>, env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps<'_>, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Ask { query } => to_json_binary(&query::ask(deps, env, query)?),
         QueryMsg::Program {} => to_json_binary(&query::program(deps)?),
@@ -131,20 +131,20 @@ pub fn query(deps: Deps<'_, LogicCustomQuery>, env: Env, msg: QueryMsg) -> StdRe
 
 pub mod query {
     use super::*;
+    use crate::helper;
     use crate::helper::object_ref_to_uri;
     use crate::msg::ProgramResponse;
     use crate::state::PROGRAM;
     use axone_logic_bindings::{Answer, AskResponse};
-    use cosmwasm_std::QueryRequest;
 
     const ERR_STONE_BROKEN: &str = "system_error(broken_law_stone)";
 
-    pub fn program(deps: Deps<'_, LogicCustomQuery>) -> StdResult<ProgramResponse> {
+    pub fn program(deps: Deps<'_>) -> StdResult<ProgramResponse> {
         let program = PROGRAM.load(deps.storage)?.into();
         Ok(program)
     }
 
-    pub fn program_code(deps: Deps<'_, LogicCustomQuery>) -> StdResult<Binary> {
+    pub fn program_code(deps: Deps<'_>) -> StdResult<Binary> {
         let ObjectRef {
             storage_address,
             object_id,
@@ -156,11 +156,7 @@ pub mod query {
         )
     }
 
-    pub fn ask(
-        deps: Deps<'_, LogicCustomQuery>,
-        env: Env,
-        query: String,
-    ) -> StdResult<AskResponse> {
+    pub fn ask(deps: Deps<'_>, env: Env, query: String) -> StdResult<AskResponse> {
         let stone = PROGRAM.load(deps.storage)?;
         if stone.broken {
             return Ok(AskResponse {
@@ -173,8 +169,8 @@ pub mod query {
             });
         }
 
-        let req: QueryRequest<LogicCustomQuery> = build_ask_query(stone.law, query)?.into();
-        deps.querier.query(&req)
+        let req = build_ask_query(stone.law, query)?.into();
+        helper::query(&deps.querier, &req)
     }
 
     pub fn build_ask_query(program: ObjectRef, query: String) -> StdResult<LogicCustomQuery> {
@@ -188,11 +184,7 @@ pub mod query {
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn reply(
-    deps: DepsMut<'_, LogicCustomQuery>,
-    env: Env,
-    msg: Reply,
-) -> Result<Response, ContractError> {
+pub fn reply(deps: DepsMut<'_>, env: Env, msg: Reply) -> Result<Response, ContractError> {
     match msg.id {
         STORE_PROGRAM_REPLY_ID => reply::store_program_reply(deps, env, msg),
         _ => Err(ContractError::UnknownReplyID),
@@ -201,12 +193,13 @@ pub fn reply(
 
 pub mod reply {
     use super::*;
+    use crate::helper;
     use crate::helper::{ask_response_to_objects, get_reply_event_attribute, object_ref_to_uri};
     use crate::state::{LawStone, DEPENDENCIES, PROGRAM};
     use cw_utils::ParseReplyError;
 
     pub fn store_program_reply(
-        deps: DepsMut<'_, LogicCustomQuery>,
+        deps: DepsMut<'_>,
         _env: Env,
         msg: Reply,
     ) -> Result<Response, ContractError> {
@@ -240,7 +233,7 @@ pub mod reply {
                 INSTANTIATE_CONTEXT.remove(deps.storage);
 
                 let req = build_source_files_query(stone.law.clone())?.into();
-                let res = deps.querier.query(&req).map_err(ContractError::from)?;
+                let res = helper::query(&deps.querier, &req).map_err(ContractError::from)?;
 
                 let objects = ask_response_to_objects(res, "Files".to_string())?;
                 let mut msgs = Vec::with_capacity(objects.len());
@@ -355,7 +348,7 @@ mod tests {
         };
         let info = mock_info("creator", &[]);
 
-        let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
+        let res = instantiate(deps.as_mut().into_empty(), mock_env(), info, msg).unwrap();
 
         // Check if a message is send to the axone-objectarium to store the logic program.
         assert_eq!(1, res.messages.len());
@@ -401,7 +394,7 @@ mod tests {
                 .to_string(),
         };
 
-        let result = instantiate(deps.as_mut(), env, info, msg);
+        let result = instantiate(deps.as_mut().into_empty(), env, info, msg);
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), ContractError::Payment(NonPayable {}));
     }
@@ -428,7 +421,7 @@ mod tests {
             )
             .unwrap();
 
-        let res = query(deps.as_ref(), mock_env(), QueryMsg::Program {}).unwrap();
+        let res = query(deps.as_ref().into_empty(), mock_env(), QueryMsg::Program {}).unwrap();
         let result: ProgramResponse = from_json(&res).unwrap();
 
         assert_eq!(object_id, result.object_id);
@@ -473,7 +466,12 @@ mod tests {
             )
             .unwrap();
 
-        let result = query(deps.as_ref(), mock_env(), QueryMsg::ProgramCode {}).unwrap();
+        let result = query(
+            deps.as_ref().into_empty(),
+            mock_env(),
+            QueryMsg::ProgramCode {},
+        )
+        .unwrap();
         let data: Binary = from_json(&result).unwrap();
         let program: String = from_json(&data).unwrap();
 
@@ -608,7 +606,11 @@ mod tests {
                 )
                 .unwrap();
 
-            let res = query(deps.as_ref(), env, QueryMsg::Ask { query: case.1 });
+            let res = query(
+                deps.as_ref().into_empty(),
+                env,
+                QueryMsg::Ask { query: case.1 },
+            );
 
             match res {
                 Ok(result) => {
@@ -709,7 +711,8 @@ mod tests {
                 )
                 .unwrap();
 
-            let response = reply::store_program_reply(deps.as_mut(), mock_env(), reply);
+            let response =
+                reply::store_program_reply(deps.as_mut().into_empty(), mock_env(), reply);
             let res = response.unwrap();
 
             let program = PROGRAM.load(&deps.storage).unwrap();
