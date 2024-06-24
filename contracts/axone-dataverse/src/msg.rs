@@ -56,10 +56,10 @@ pub enum ExecuteMsg {
     /// - `DataIntegrity` with the following cryptosuites: `eddsa-2022`, `eddsa-rdfc-2022`.
     ///
     SubmitClaims {
-        /// The serialized metadata intended for attachment.
-        /// This metadata should adhere to the format specified in the `format` field.
-        metadata: Binary,
-        /// RDF dataset serialization format for the metadata.
+        /// The Verifiable Credential containing the claims.
+        /// The claims must be serialized in the format specified by the `format` field.
+        claims: Binary,
+        /// RDF dataset serialization format for the claims.
         /// If not provided, the default format is [N-Quads](https://www.w3.org/TR/n-quads/) format.
         format: Option<RdfDatasetFormat>,
     },
