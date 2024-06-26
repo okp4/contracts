@@ -1,7 +1,14 @@
 [package]
-authors = ["AXONE"]
+authors.workspace = true
+categories = ["cryptography::cryptocurrencies"]
+description = "A CosmWasm Smart Contract which enables the storage and querying of Semantic data using RDF (Resource Description Framework), which represents information as semantic triples."
+documentation = "https://docs.axone.xyz/contracts/okp4-cognitarium"
 edition = "2021"
+homepage.workspace = true
+license-file.workspace = true
 name = "axone-cognitarium"
+readme = "README.md"
+repository = "https://github.com/axone-protocol/contracts/tree/main/contracts/axone-cognitarium"
 rust-version = "1.75"
 version = "5.0.0"
 

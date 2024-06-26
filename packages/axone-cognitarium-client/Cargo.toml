@@ -1,7 +1,14 @@
 [package]
-authors = ["AXONE"]
+authors.workspace = true
+categories = ["cryptography::cryptocurrencies"]
+description = "Package that holds components to interact with the `axone-cognitarium` contract."
+documentation = "https://docs.axone.xyz/contracts/okp4-cognitarium"
 edition = "2021"
+homepage.workspace = true
+license-file.workspace = true
 name = "axone-cognitarium-client"
+readme = "README.md"
+repository = "https://github.com/axone-protocol/contracts/tree/main/packages/axone-cognitarium-client"
 version = "5.0.0"
 
 [dependencies]

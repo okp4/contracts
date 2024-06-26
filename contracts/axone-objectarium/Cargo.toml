@@ -1,7 +1,18 @@
 [package]
-authors = ["AXONE"]
+authors.workspace = true
+categories = [
+  "cryptography::cryptocurrencies",
+  "data-structures",
+  "database-implementations",
+]
+description = "A CosmWasm Smart Contract which enables the storage of arbitrary unstructured Objects in any Cosmos blockchains."
+documentation = "https://docs.axone.xyz/contracts/okp4-objectarium"
 edition = "2021"
+homepage.workspace = true
+license-file.workspace = true
 name = "axone-objectarium"
+readme = "README.md"
+repository = "https://github.com/axone-protocol/contracts/tree/main/contracts/axone-objectarium"
 rust-version = "1.75"
 version = "5.0.0"
 

@@ -1,7 +1,14 @@
 [package]
-authors = ["AXONE"]
+authors.workspace = true
+categories = ["cryptography::cryptocurrencies"]
+description = 'A CosmWasm Smart Contract which enables the orchestration of "Dataverses", a collection of digital resources governed by rules set by what is called a "Zone".'
+documentation = "https://docs.axone.xyz/contracts/okp4-dataverse"
 edition = "2021"
+homepage.workspace = true
+license-file.workspace = true
 name = "axone-dataverse"
+readme = "README.md"
+repository = "https://github.com/axone-protocol/contracts/tree/main/contracts/axone-dataverse"
 rust-version = "1.75"
 version = "5.0.0"
 

@@ -1,7 +1,14 @@
 [package]
-authors = ["AXONE"]
+authors.workspace = true
+categories = ["data-structures", "parser-implementations"]
+description = "Package that holds useful components to manage with `RDF` data, typically reading / writing."
+documentation = "https://docs.axone.xyz/contracts/okp4-cognitarium#model-your-data-with-rdf"
 edition = "2021"
+homepage.workspace = true
+license-file.workspace = true
 name = "axone-rdf"
+readme = "README.md"
+repository = "https://github.com/axone-protocol/contracts/tree/main/packages/axone-rdf"
 version = "5.0.0"
 
 [dependencies]

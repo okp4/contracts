@@ -2,6 +2,11 @@
 members = ["contracts/*", "packages/*"]
 resolver = "2"
 
+[workspace.package]
+authors = ["AXONE"]
+homepage = "https://axone.xyz/"
+license-file = "LICENSE"
+
 [profile.release]
 codegen-units = 1
 debug = false
@@ -16,15 +21,15 @@ rpath = false
 [workspace.dependencies]
 axone-cognitarium = { path = "contracts/axone-cognitarium", features = [
   "library",
-] }
-axone-cognitarium-client = { path = "packages/axone-cognitarium-client" }
-axone-logic-bindings = { path = "packages/axone-logic-bindings" }
+], version = "5.0.0" }
+axone-cognitarium-client = { path = "packages/axone-cognitarium-client", version = "5.0.0" }
+axone-logic-bindings = { path = "packages/axone-logic-bindings", version = "5.0.0" }
 axone-objectarium = { path = "contracts/axone-objectarium", features = [
   "library",
-] }
-axone-objectarium-client = { path = "packages/axone-objectarium-client" }
-axone-rdf = { path = "packages/axone-rdf" }
-axone-wasm = { path = "packages/axone-wasm" }
+], version = "5.0.0" }
+axone-objectarium-client = { path = "packages/axone-objectarium-client", version = "5.0.0" }
+axone-rdf = { path = "packages/axone-rdf", version = "5.0.0" }
+axone-wasm = { path = "packages/axone-wasm", version = "5.0.0" }
 cosmwasm-schema = "1.5.5"
 cosmwasm-std = { version = "1.5.5", features = ["cosmwasm_1_2"] }
 cosmwasm-storage = "1.5.2"

@@ -1,3 +1,3 @@
-# RDF
+# WASM
 
-Package that holds useful components to manage with `RDF` data, typically reading / writing.
+Package that holds useful components to manage with `CosmWasm` data, typically reading / writing.
