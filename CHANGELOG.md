@@ -241,7 +241,7 @@
 * **cognitarium:** rework querying interface ([1213e38](https://github.com/axone-protocol/contracts/commit/1213e38c9877d88210c795e24d3e12db022998a2))
 * **cognitarium:** rework triples primary key storage ([5409300](https://github.com/axone-protocol/contracts/commit/5409300bcef438d5b9be0da7de62baead8ace99c))
 * **cognitarium:** separate iri namespaces from triples ([a5066ea](https://github.com/axone-protocol/contracts/commit/a5066eaf6a5680a5b365a5bbd0671fde9dcc7050))
-* **cognitarium:** specifiy the sparql select query ([b4ed270](https://github.com/axone-protocol/contracts/commit/b4ed270cc691b80c9310c09871eec5979d094b20))
+* **cognitarium:** specify the sparql select query ([b4ed270](https://github.com/axone-protocol/contracts/commit/b4ed270cc691b80c9310c09871eec5979d094b20))
 * **cognitarium:** specify Describe query ([158ed40](https://github.com/axone-protocol/contracts/commit/158ed40ed2cd8290d46af45232fdbd103e009ba0))
 * **cognitarium:** specify max_byte_size limit ([62c2f81](https://github.com/axone-protocol/contracts/commit/62c2f81fb690a2313d676862bb7fde5ffdd8a450))
 * **cognitarium:** specify max_insert_data_byte_size limit ([5c46dd8](https://github.com/axone-protocol/contracts/commit/5c46dd803155991f54d28684692ab1e35d2ab0ca))
